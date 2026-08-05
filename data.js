@@ -8,7 +8,7 @@ const company = {
     // Logo: "text" | "image" | "svg"
     logo: {
         type: "text",
-        value: "Built With Love"
+        value: "Built With Love Construction"
     },
 
     colors: {
