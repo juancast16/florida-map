@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0 — Floating county details panel (2026-08-04)
+
+### Changed
+
+- County details now open as a floating dialog over the map (better for Wix iframes)
+- Added close control (X), backdrop click, and Escape to dismiss
+- Map fills the viewport; no more stacked sidebar that forces scroll
+
 ## 1.0.0 — V1 / V1.1 Production Ready (2026-08-04)
 
 First production release of the Florida Service Areas corporate dashboard.

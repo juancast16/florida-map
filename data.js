@@ -36,8 +36,9 @@ const company = {
     },
 
     panel: {
-        title: "Florida Service Areas",
-        subtitle: "Select a county on the map.",
+        title: "County Details",
+        subtitle: "Coverage and available services",
+        closeLabel: "Close details",
         empty: {
             hero: "",
             heading: "Coverage Area",

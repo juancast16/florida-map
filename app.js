@@ -22,6 +22,9 @@ let resizeTimer = null;
 const countyInfoEl = document.getElementById("countyInfo");
 const searchInput = document.getElementById("searchCounty");
 const suggestionsList = document.getElementById("searchSuggestions");
+const countyOverlay = document.getElementById("countyOverlay");
+const panelCloseBtn = document.getElementById("panelClose");
+const countyBackdrop = document.getElementById("countyBackdrop");
 
 function createEl(tag, className, text) {
     const node = document.createElement(tag);
@@ -114,7 +117,12 @@ function applyCompany() {
     searchInput.placeholder = company.searchPlaceholder;
     document.getElementById("panelTitle").textContent = company.panel.title;
     document.getElementById("panelSubtitle").textContent = company.panel.subtitle;
-    showEmptyPanel(false);
+
+    const closeLabel = company.panel.closeLabel || "Close details";
+    panelCloseBtn.setAttribute("aria-label", closeLabel);
+    countyBackdrop.setAttribute("aria-label", closeLabel);
+
+    closeCountyPanel(false);
 }
 
 function renderPanel(build, animate) {
@@ -135,19 +143,36 @@ function renderPanel(build, animate) {
     panelTimer = setTimeout(run, 180);
 }
 
-function showEmptyPanel(animate) {
-    const empty = company.panel.empty;
+function openCountyPanel() {
+    countyOverlay.hidden = false;
+    requestAnimationFrame(() => {
+        countyOverlay.classList.add("is-open");
+        countyInfoEl.focus({ preventScroll: true });
+        refreshMapSize();
+    });
+}
 
-    renderPanel(info => {
-        if (empty.hero) {
-            const img = createEl("img", "hero");
-            img.src = empty.hero;
-            img.alt = empty.heading;
-            info.appendChild(img);
-        }
-        info.appendChild(createEl("h3", null, empty.heading));
-        info.appendChild(createEl("p", null, empty.body));
-    }, animate);
+function closeCountyPanel(clearSelection) {
+    countyOverlay.classList.remove("is-open");
+    countyOverlay.hidden = true;
+
+    if (clearSelection !== false && selectedLayer && geojson) {
+        geojson.resetStyle(selectedLayer);
+        selectedLayer = null;
+    }
+
+    refreshMapSize();
+}
+
+function initCountyPanel() {
+    panelCloseBtn.addEventListener("click", () => closeCountyPanel(true));
+    countyBackdrop.addEventListener("click", () => closeCountyPanel(true));
+
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+        if (!suggestionsList.hidden) return;
+        if (!countyOverlay.hidden) closeCountyPanel(true);
+    });
 }
 
 function buildDetailRow(label, value) {
@@ -192,6 +217,8 @@ function updateSidebar(name) {
         button.setAttribute("aria-label", `${data.button}: ${name} County`);
         info.appendChild(button);
     });
+
+    openCountyPanel();
 }
 
 function style(feature) {
@@ -223,11 +250,12 @@ function selectCounty(layer) {
 
     if (selectedLayer === layer) {
         map.fitBounds(layer.getBounds(), {
-            padding: [40, 40],
+            padding: [48, 48],
             maxZoom: 10,
             animate: true,
             duration: 0.55
         });
+        updateSidebar(layer.feature.properties.NAME);
         return;
     }
 
@@ -242,7 +270,7 @@ function selectCounty(layer) {
     selectedLayer.bringToFront();
 
     map.fitBounds(selectedLayer.getBounds(), {
-        padding: [40, 40],
+        padding: [48, 48],
         maxZoom: 10,
         animate: true,
         duration: 0.55
@@ -415,6 +443,7 @@ function initMapResize() {
 
 applyCompany();
 initSearch();
+initCountyPanel();
 initMapResize();
 
 fetch("florida-counties.geojson")
@@ -444,4 +473,5 @@ fetch("florida-counties.geojson")
                 "County boundaries could not be loaded. Please refresh the page."
             ));
         }, false);
+        openCountyPanel();
     });
